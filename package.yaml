@@ -1,0 +1,11 @@
+---
+name: plotDSL
+version: 0.1.0.0
+license: MIT
+license-file: LICENSE
+dependencies:
+  - base
+  - transformers
+  - process
+library:
+  source-dirs: ./src/
