@@ -5,7 +5,7 @@
     nixpkgs = { url = "github:NixOS/nixpkgs/"; };
     flake-utils = { url = "github:numtide/flake-utils"; };
     nix-filter.url = "github:numtide/nix-filter";
-    safe-coloured-text.url = "github:NorfairKing/safe-coloured-text?ref=flake";
+    safe-coloured-text.url = "github:NorfairKing/safe-coloured-text";  
   };
 
   outputs = { self, nixpkgs, flake-utils, safe-coloured-text, nix-filter, ... }:
