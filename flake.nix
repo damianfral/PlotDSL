@@ -51,7 +51,7 @@
             hpack
             hlint
             yamlfix
-            rnix-lsp
+            nil
           ];
         };
 
