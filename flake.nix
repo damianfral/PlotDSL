@@ -2,16 +2,22 @@
   description = "An experiment to play with the free monad and build a DSL for plotting.";
 
   inputs = {
-    nixpkgs = { url = "github:NixOS/nixpkgs/"; };
-    flake-utils = { url = "github:numtide/flake-utils"; };
+    nixpkgs = {url = "github:NixOS/nixpkgs/nixos-unstable";};
+    flake-utils = {url = "github:numtide/flake-utils";};
     nix-filter.url = "github:numtide/nix-filter";
-    safe-coloured-text.url = "github:NorfairKing/safe-coloured-text";  
+    safe-coloured-text.url = "github:NorfairKing/safe-coloured-text";
   };
 
-  outputs = { self, nixpkgs, flake-utils, safe-coloured-text, nix-filter, ... }:
-
-    let
-      pkgsFor = system: import nixpkgs {
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+    safe-coloured-text,
+    nix-filter,
+    ...
+  }: let
+    pkgsFor = system:
+      import nixpkgs {
         inherit system;
         overlays = [
           self.overlays.${system}
@@ -19,51 +25,50 @@
           nix-filter.overlays.default
         ];
       };
-    in
+  in
+    flake-utils.lib.eachDefaultSystem (system: let
+      pkgs = pkgsFor system;
+      filteredSrc = pkgs.nix-filter {
+        root = ./.;
+        include = [
+          "src/"
+          "test/"
+          "package.yaml"
+          "LICENSE"
+        ];
+      };
+    in rec {
+      packages = {
+        plotDSL = pkgs.haskellPackages.plotDSL;
+      };
 
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = pkgsFor system;
-        filteredSrc =
-          pkgs.nix-filter {
-            root = ./.;
-            include = [
-              "src/"
-              "test/"
-              "package.yaml"
-              "LICENSE"
-            ];
-          };
-      in
-      rec {
-        packages = {
-          plotDSL = pkgs.haskellPackages.plotDSL;
-        };
+      defaultPackage = packages.plotDSL;
 
-        defaultPackage = packages.plotDSL;
+      devShells.default = pkgs.haskellPackages.shellFor {
+        packages = p: [packages.plotDSL];
+        buildInputs = with pkgs;
+        with pkgs.haskellPackages; [
+          haskell-language-server
+          cabal-install
+          ghcid
+          hpack
+          hlint
+          yamlfix
+          nil
+        ];
+      };
 
-        devShells.default = pkgs.haskellPackages.shellFor {
-          packages = p: [ packages.plotDSL ];
-          buildInputs = with pkgs; with pkgs.haskellPackages; [
-            haskell-language-server
-            cabal-install
-            ghcid
-            hpack
-            hlint
-            yamlfix
-            nil
-          ];
-        };
-
-        overlays = final: prev: with final.haskell.lib; {
+      overlays = final: prev:
+        with final.haskell.lib; {
           haskellPackages = prev.haskellPackages.override (old: {
-            overrides = final.lib.composeExtensions (old.overrides or (_: _: { }))
-              (self: super: {
-                plotDSL = self.callCabal2nix "plotDSL" filteredSrc { };
-              }
+            overrides =
+              final.lib.composeExtensions (old.overrides or (_: _: {}))
+              (
+                self: super: {
+                  plotDSL = self.callCabal2nix "plotDSL" filteredSrc {};
+                }
               );
           });
         };
-      });
+    });
 }
-
