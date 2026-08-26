@@ -1,5 +1,6 @@
 ---
 name: plotDSL
+synopsis: Experimental free-monad DSL for plotting
 version: 0.1.0.0
 license: MIT
 license-file: LICENSE
