@@ -8,5 +8,14 @@ jobs:
         uses: actions/checkout@main
       - name: install nix
         uses: cachix/install-nix-action@master
+      - uses: cachix/cachix-action@master
+        with:
+          name: opensource
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      - uses: damianfral/nix-cache-lookup@master
+        id: cache-lookup-default
+        with:
+          flake-attribute: .#default
       - name: nix build
         run: nix build
+        if: steps.cache-lookup-default.outputs.cached != 'true'
