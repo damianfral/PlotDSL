@@ -5,14 +5,12 @@
     nixpkgs = {url = "github:NixOS/nixpkgs/nixos-unstable";};
     flake-utils = {url = "github:numtide/flake-utils";};
     nix-filter.url = "github:numtide/nix-filter";
-    safe-coloured-text.url = "github:NorfairKing/safe-coloured-text";
   };
 
   outputs = {
     self,
     nixpkgs,
     flake-utils,
-    safe-coloured-text,
     nix-filter,
     ...
   }: let
@@ -21,7 +19,6 @@
         inherit system;
         overlays = [
           self.overlays.${system}
-          safe-coloured-text.overlays.${system}
           nix-filter.overlays.default
         ];
       };
@@ -37,15 +34,14 @@
           "LICENSE"
         ];
       };
-    in rec {
-      packages = {
+    in {
+      packages = rec {
         plotDSL = pkgs.haskellPackages.plotDSL;
+        default = plotDSL;
       };
 
-      defaultPackage = packages.plotDSL;
-
       devShells.default = pkgs.haskellPackages.shellFor {
-        packages = p: [packages.plotDSL];
+        packages = p: [p.plotDSL];
         buildInputs = with pkgs;
         with pkgs.haskellPackages; [
           haskell-language-server
